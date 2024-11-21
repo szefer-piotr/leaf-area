@@ -1,27 +1,27 @@
 import pandas as pd
 
-# def calculate_total_area(file: pd.DataFrame) -> pd.DataFrame:
-#     """
-#     For all leaves calculate total area, and total estimated area of leaf blades. Estimations were made by hand in the ImageJ software, 
-#     where outline of each leaf blade were made by hand.
-#     Arguments:
-#         data (dataframe): raw output from the ImageJ software after 
-#     Returns:
-#         output (tuple): (label, total_estimated_area, total_area) from which the lost area can be determined.
-#     """
-#     data_label = file['Label'].unique().item()
+def calculate_total_area(file: pd.DataFrame) -> pd.DataFrame:
+    """
+    For all leaves calculate total area, and total estimated area of leaf blades. Estimations were made by hand in the ImageJ software, 
+    where outline of each leaf blade were made by hand.
+    Arguments:
+        data (dataframe): raw output from the ImageJ software after 
+    Returns:
+        output (tuple): (label, total_estimated_area, total_area) from which the lost area can be determined.
+    """
+    data_label = file['Label'].unique().item()
     
-#     n_rows = file.shape[0]
+    n_rows = file.shape[0]
     
-#     if n_rows % 2 != 0:
-#         print(f'In {data_label} the number of rows not even.')
-#         return
+    if n_rows % 2 != 0:
+        print(f'In {data_label} the number of rows not even.')
+        return
 
-#     area =  data['Area']
-#     total_estimated_area = area[:int(n_rows/2)].sum()
-#     total_area = area[int(n_rows/2):].sum()
+    area =  file['Area']
+    total_estimated_area = area[:int(n_rows/2)].sum()
+    total_area = area[int(n_rows/2):].sum()
 
-#     return data_label, total_estimated_area, total_area
+    return data_label, total_estimated_area, total_area
 
 # from itertools import compress
 

@@ -1,0 +1,3 @@
+data_filtered:
+  type: pandas.CSVDataset
+  filepath: data/05_model_input/data_filtered.csv

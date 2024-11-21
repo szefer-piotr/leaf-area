@@ -1,13 +1,10 @@
-"""
-This is a boilerplate pipeline 'preprocess'
-generated using Kedro 0.19.9
-"""
-
-# Move jpegs to separate folder with images
 import shutil
 import os
 import glob
 import re
+
+from utils.utils import calculate_total_area
+import pandas as pd
 
 def organize_images_and_tables(
         data_source: str,
@@ -44,33 +41,46 @@ def organize_images_and_tables(
         shutil.copy(f, tabular_dest)
     message = "File sorting complete."
 
+    print(f"[INFO] {message}")
+
     return message
 
 
 
-# def concatenate_tabular_data():
-#     """
-#     [TODO]
-#     """
-#     df = pd.DataFrame()
-#     for f in xls_files_staged:
-#         try:
-#             data = pd.read_csv(f, sep='\t')
-#         except Exception as e:
-#             print("Data did not read properly")
-#         try:
-#             label, leaf_est_area, leaf_area = calculate_total_area(data)
-#         except Exception as e:
-#             print(e)
-#             print(f"Something went wrong in {label}")
-#         df_row = pd.DataFrame(
-#             {
-#                 'label': label,
-#                 'est_area': [leaf_est_area],
-#                 'area': [leaf_area],
-#             }
-#         )
-#         df= pd.concat([df, df_row], ignore_index=True)
+def concatenate_tabular_data(table_destination_path):
+    """
+    Concatenate csv files for each photo into one dataframe. During concatenation total (for all leaves) predicted area, 
+    and real area are also calcualted using `calculate_total_area` function, that outputs three values: predicted area,
+    real area and their difference: area lost.
+
+    Arguments:
+        table_destination_path (string): path to the folder with tabular data for individual files.
+    """
+
+    xls_files_staged = glob.glob(os.path.join(table_destination_path, "*.xls"))
+
+    df = pd.DataFrame()
+
+    for f in xls_files_staged:
+        try:
+            data = pd.read_csv(f, sep='\t')
+        except Exception as e:
+            print("Data did not read properly")
+        try:
+            label, leaf_est_area, leaf_area = calculate_total_area(data)
+        except Exception as e:
+            print(e)
+            print(f"Something went wrong in {label}")
+        df_row = pd.DataFrame(
+            {
+                'label': label,
+                'est_area': [leaf_est_area],
+                'area': [leaf_area],
+            }
+        )
+        df= pd.concat([df, df_row], ignore_index=True)
+
+    return df
 
 
 
