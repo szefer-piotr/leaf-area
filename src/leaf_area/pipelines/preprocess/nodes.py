@@ -84,24 +84,37 @@ def concatenate_tabular_data(table_destination_path):
 
 
 
-# def create_image_path_column():
-#     """
-#     Create a column in the dataset with reference path to images.
-#     """
-#     df['label'] = [f.replace('.P', '') for f in df['label']]
-#     df['image_path'] = [f"{image_dest}/{label}" for label in df['label']]
-#     df['image_path'] = [f.replace('.jpg', '.JPG') for f in df['image_path']]
-#     df['area_lost'] = df['est_area'] - df['area']
-#     df.to_csv(os.path.join('../data/processed','data.csv'))
+def create_image_path_column(df: pd.DataFrame,
+                             image_dest: str,
+                             ) -> pd.DataFrame:
+    """
+    Create a column in the dataset with reference path to images.
+    """
+    
+    df['label'] = [f.replace('.P', '') for f in df['label']]
+    df['image_path'] = [f"{image_dest}/{label}" for label in df['label']]
+    df['image_path'] = [f.replace('.jpg', '.JPG') for f in df['image_path']]
+    df['area_lost'] = df['est_area'] - df['area']
+    
+    return df
 
 
 
-# def filter_dataset():
-#     image_dest = '../data/staged/images'
-#     image_list = glob.glob(os.path.join(image_dest, "*"))
-#     data['img_id_exists'] = [f in image_list for f in data['image_path']]
-#     data_filtered = data[data['img_id_exists'] == True]
-#     data_filtered.to_csv(os.path.join('../data/processed','data_filtered.csv'))
+def filter_dataset(data: pd.DataFrame,
+                   image_dest: str) -> pd.DataFrame:
+    """
+    Filters only records, for which an image in the image foleder exists.
+    Arguments:
+        data (data frame): concatenated datset with column named 'image_path' identyfying corresponding images.
+        image_dest (string): path to the image files.
+    Returns:
+        data_fileterd (data frame): data with records holding existing corresponding images
+    """
+    image_list = glob.glob(os.path.join(image_dest, "*"))
+    data['img_id_exists'] = [f in image_list for f in data['image_path']]
+    data_filtered = data[data['img_id_exists'] == True]
+    
+    return data_filtered
 
 
 
