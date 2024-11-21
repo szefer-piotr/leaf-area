@@ -3,6 +3,8 @@
 from kedro.framework.project import find_pipelines
 from kedro.pipeline import Pipeline
 
+import leaf_area.pipelines.preprocess as prep
+import leaf_area.pipelines.train as train
 
 def register_pipelines() -> dict[str, Pipeline]:
     """Register the project's pipelines.
@@ -10,6 +12,12 @@ def register_pipelines() -> dict[str, Pipeline]:
     Returns:
         A mapping from pipeline names to ``Pipeline`` objects.
     """
-    pipelines = find_pipelines()
-    pipelines["__default__"] = sum(pipelines.values())
-    return pipelines
+
+    data_processing_pipeline = prep.create_pipeline()
+    model_training_pipeline = train.create_pipeline()
+
+    return {
+        '__default__': data_processing_pipeline + model_training_pipeline,
+        'data_processing_pipeline': data_processing_pipeline,
+        'model_training_pipeline': model_training_pipeline,
+    }

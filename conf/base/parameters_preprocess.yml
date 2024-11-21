@@ -3,3 +3,7 @@
 #
 # Documentation for this file format can be found in "Parameters"
 # Link: https://docs.kedro.org/en/0.19.9/configuration/parameters.html
+
+data_source_path: './data/01_raw' 
+images_destination_path: './data/02_intermediate/images'
+table_destination_path: './data/02_intermediate/tables'
