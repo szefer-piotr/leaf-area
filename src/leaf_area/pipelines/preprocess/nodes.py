@@ -6,6 +6,8 @@ import re
 from utils.utils import calculate_total_area
 import pandas as pd
 
+
+
 def organize_images_and_tables(
         data_source: str,
         image_dest: str,

@@ -12,6 +12,7 @@ kedro-viz = "^10.0.0"
 kedro-datasets = {extras = ["pandas-csvdataset", "pandas-parquetdataset"], version = "^5.1.0"}
 torch = {version = "^2.5.1+cu118", source = "pytorch-gpu"}
 torchvision = {version = "^0.20.1+cu118", source = "pytorch-gpu"}
+scikit-learn = "^1.5.2"
 
 
 [[tool.poetry.source]]

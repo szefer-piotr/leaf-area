@@ -1,3 +1,15 @@
 data_filtered:
   type: pandas.CSVDataset
-  filepath: data/05_model_input/data_filtered.csv
+  filepath: data/03_primary/data_filtered.csv
+
+X_train:
+  type: pandas.CSVDataset
+  filepath: ./data/05_model_input/X_train.csv
+
+X_val:
+  type: pandas.CSVDataset
+  filepath: ./data/05_model_input/X_val.csv
+
+X_test:
+  type: pandas.CSVDataset
+  filepath: ./data/05_model_input/X_test.csv

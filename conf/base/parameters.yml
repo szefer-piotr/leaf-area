@@ -1,0 +1,5 @@
+tabular_data_path: './data/05_model_input'
+
+models_dict:
+  resnet18: models.resnet18
+  resnet50: models.resnet50
