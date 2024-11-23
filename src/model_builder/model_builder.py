@@ -2,9 +2,14 @@ from torch.utils.data import Dataset
 from PIL import Image
 import torch
 import torch.nn as nn
+import numpy as np
 
 class LeafFrameDataset(Dataset):
-    def __init__(self, data, transformations, target_name = 'area_lost', 
+    def __init__(self, 
+                 data, 
+                 transformations, 
+                 target_name = 'area_lost', 
+                 target_transformation: callable = np.log1p,
                  ):
         """
         Arguments:
@@ -15,6 +20,7 @@ class LeafFrameDataset(Dataset):
         self.data = data
         self.target_name = target_name
         self.transformations = transformations
+        self.target_transformation = target_transformation
 
     def __len__(self):
         return len(self.data)
@@ -32,12 +38,18 @@ class LeafFrameDataset(Dataset):
             img = self.transformations(img)
         
         target = self.data.iloc[idx][self.target_name].astype('float32')
-        
+
+        if self.target_transformation is not None:
+            target = self.target_transformation(target)
+
         return img, target
 
 
 
-def create_sequential(num_layers, nodes_per_layer, activation=nn.ReLU, final_activation = None):
+def create_sequential(num_layers, 
+                      nodes_per_layer, 
+                      activation=nn.ReLU, 
+                      final_activation = None):
     """
     Create a Sequential module with the specified number of layers and nodes.
 
@@ -84,6 +96,7 @@ def replace_final_layer(
     """
     children = list(model.named_children())
     last_name, last_module = children[-1]
+    
     new_layer = create_sequential(
         num_layers, 
         nodes_per_layer,
@@ -93,3 +106,37 @@ def replace_final_layer(
     setattr(model, last_name, replace_final_layer(last_module, new_layer))
     
     return model
+
+
+
+def create_model(models_dict, model_name, weights, fine_tune):
+    """
+    Create a model from the model dictionary.
+    
+    Args:
+        models_dict
+        model_name
+        weights
+        device
+        fine_tune
+
+    Returns:
+        model (nn.Module): model
+    """
+    print(f'[DEBUG] {models_dict}')
+    model_callable = eval(models_dict[model_name])
+    model = model_callable(weights=weights)
+    if fine_tune:
+        for param in model.parameters():
+            param.requires_grad = False
+
+    return model
+
+
+
+def build_model_dictionary(models_yaml):
+    """
+    Builds a callable for models in the model yml file.
+    """
+    
+    return model_dict

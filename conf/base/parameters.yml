@@ -1,5 +1,19 @@
 tabular_data_path: './data/05_model_input'
 
-models_dict:
-  resnet18: models.resnet18
-  resnet50: models.resnet50
+
+
+target_transformations: None
+device: 'cuda'
+
+model_definition_params:
+  model_name: 'resnet18'
+  weights: "DEFAULT"
+  fine_tune: True
+
+final_layer_params:
+  num_layers: 4
+  nodes_per_layer: [128, 64, 32, 16, 1]
+  activation: nn.ReLU
+  final_activation: None
+  
+

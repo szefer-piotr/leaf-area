@@ -13,3 +13,7 @@ X_val:
 X_test:
   type: pandas.CSVDataset
   filepath: ./data/05_model_input/X_test.csv
+
+models_dict:
+  type: yaml.YAMLDataset
+  filepath: ./data/05_model_input/model_catalog.yml

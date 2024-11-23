@@ -14,6 +14,7 @@ from model_builder.model_builder import (
     LeafFrameDataset,
     create_sequential,
     replace_final_layer,
+    create_model
 )
 
 from torchvision import models
@@ -110,26 +111,37 @@ def create_datasets(
         X_train: pd.DataFrame, 
         X_val: pd.DataFrame , 
         X_test: pd.DataFrame, 
-        data_transforms: dict
+        data_transforms: dict,
+        target_transformation: callable,
     ) -> tuple:
     """
-    Creates image datasets using custom PyTorch dataset LeafFrameDataset.
+    Creates a dictonary of image datasets using custom PyTorch dataset LeafFrameDataset.
+
+    Args:
+        X_train (pd.DataFrame): training set.
+        X_train (pd.DataFrame): training set.
+        X_train (pd.DataFrame): training set.
+        data_transforms
+
     """
     image_datasets = {
     'train': LeafFrameDataset(
         X_train,
         transformations=data_transforms['train'],
-        target_name='area_lost'
+        target_name='area_lost',
+        target_transformation=target_transformation
     ),
     'val': LeafFrameDataset(
         X_val,
         transformations=data_transforms['val'],
-        target_name='area_lost'
+        target_name='area_lost',
+        target_transformation=target_transformation
     ),
     'test': LeafFrameDataset(
         X_test,
         transformations=data_transforms['test'],
-        target_name='area_lost'
+        target_name='area_lost',
+        target_transformation=target_transformation
     )
     }
     
@@ -166,27 +178,38 @@ def create_dataloaders(image_datasets,
     return dataloaders
 
 
-def initialize_model(
-    device: torch.device,
-    models_dict: dict,
-    model_name: str,
-    weights: str,
-    final_layer_name: str = 'fc', 
-    fine_tune: bool = True
+
+def instantiate_model(models_dict: dict,
+                      model_definition_params: dict,
+                      final_layer_params: dict,
+                      device: str = 'cpu'
     ):
-    
+    """
+    Initialize model for transfer learning and allows to create a sequential. It allows to define number of layers
+    and nodes to build a nn.Sequential model for the last (usually classification layer) of any nn.Module model.
+
+    Args:
+        device (torch.device): cuda or cpu
+        models_dict (dict[str: nn.Module]): dictionary with keys refering to callable nn.Models
+        model_name (str): key for the model
+        weights: str,
+        num_layers: int, 
+        nodes_per_layer: list,
+        activation: nn.Module,
+        final_activation: nn.Module,
+        fine_tune: bool = True
+
+    Returns:
+        nn.Module:
+    """
     # model = models.resnet18(weights=weights)
-    model = models_dict[model_name](weights=weights)
-    
-    if fine_tune:
-        for param in model.parameters():
-            param.requires_grad = False
-    
+    model = create_model(models_dict, **model_definition_params)
     # Newly added layers have grad = True
-    num_ftrs = model.fc.in_features
-    model.fc = nn.Linear(num_ftrs, 1)
+    model = replace_final_layer(model, **final_layer_params)
     model = model.to(device)
-    pass
+    print(model)
+    
+    return model
 
 
 

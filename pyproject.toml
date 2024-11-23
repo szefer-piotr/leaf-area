@@ -9,10 +9,11 @@ readme = "README.md"
 python = "^3.10"
 kedro = "^0.19.9"
 kedro-viz = "^10.0.0"
-kedro-datasets = {extras = ["pandas-csvdataset", "pandas-parquetdataset"], version = "^5.1.0"}
+kedro-datasets = {extras = ["text"], version = "^5.1.0"}
 torch = {version = "^2.5.1+cu118", source = "pytorch-gpu"}
 torchvision = {version = "^0.20.1+cu118", source = "pytorch-gpu"}
 scikit-learn = "^1.5.2"
+pyyaml = "^6.0.2"
 
 
 [[tool.poetry.source]]
