@@ -2,6 +2,8 @@ tabular_data_path: './data/05_model_input'
 
 target_transformations: None
 device: 'cuda'
+batch_size: 8
+num_epochs: 2
 
 model_definition_params:
   model_name: 'resnet50'
@@ -16,9 +18,11 @@ final_layer_params:
 
 initializer_configs: 
   loss_fn: 'MSELoss'
-  optimizer: 'Adam'
-  #   amsgrad: True
-  scheduler: 'lr_scheduler.StepLR'
-  #   step_size: 7
-  #   gamma: 0.1
+  optimizer: 
+    optimizer: 'Adam'
+    amsgrad: 'True'
+  scheduler: 
+    scheduler: 'lr_scheduler.StepLR'
+    step_size: 7
+    gamma: 0.1
   metric: 'R2Score'

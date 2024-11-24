@@ -95,8 +95,7 @@ def create_model(models_dict, model_name, weights, fine_tune):
     Returns:
         model (nn.Module): model
     """
-    print(f'[DEBUG] {models_dict}')
-
+    # print(f'[DEBUG] {models_dict}')
     model = models_dict[model_name](weights=weights)
     if fine_tune:
         for param in model.parameters():
@@ -126,23 +125,16 @@ def replace_final_layer(
     
     activation = eval(activation)
     final_activation = eval(final_activation)
-
-    print(f"[DEBUG] Activation {activation} and final activation {final_activation}")
-    
+    # print(f"[DEBUG] Activation {activation} and final activation {final_activation}")
     children = list(model.named_children())
-
-    print(f"[DEBUG] Children: {len(children)} of class {type(children)}")
-
+    # print(f"[DEBUG] Children: {len(children)} of class {type(children)}")
     last_name, last_module = children[-1]
-    
     new_layer = create_sequential(
         num_layers, 
         nodes_per_layer,
         activation,
         final_activation)
-    
-    print(f"[DEBUG] Last module {last_module} and new_layer {new_layer}")
-
+    # print(f"[DEBUG] Last module {last_module} and new_layer {new_layer}")
     setattr(model, last_name, new_layer)
     
     return model

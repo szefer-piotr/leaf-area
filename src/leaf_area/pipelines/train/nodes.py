@@ -21,6 +21,8 @@ from torch.nn import MSELoss
 from torcheval.metrics import R2Score
 from torch.optim import Adam, lr_scheduler
 
+from utils.utils import string_to_callable
+
 from model_builder.model_builder import (
     LeafFrameDataset,
     create_sequential,
@@ -118,7 +120,7 @@ def create_datasets(
         X_val: pd.DataFrame , 
         X_test: pd.DataFrame, 
         data_transforms: dict,
-        target_transformation: callable,
+        target_transformation: str,
     ) -> tuple:
     """
     Creates a dictonary of image datasets using custom PyTorch dataset LeafFrameDataset.
@@ -130,6 +132,9 @@ def create_datasets(
         data_transforms
 
     """
+
+    target_transformation = string_to_callable(target_transformation)
+
     image_datasets = {
     'train': LeafFrameDataset(
         X_train,
@@ -211,7 +216,7 @@ def build_model_dictionary(
         except (ImportError, AttributeError) as e:
             raise ValueError(f'Error converting "{mod}" to a callable: {e}')
         
-    print(f'[DEBUG] Callable model dictionary: {callable_model_dict}')
+    # print(f'[DEBUG] Callable model dictionary: {callable_model_dict}')
 
     return callable_model_dict
 
@@ -240,48 +245,61 @@ def instantiate_model(models_dict: dict,
     Returns:
         nn.Module:
     """
-    
-    print(f'[DEBUG] final_layer_params parameters: {final_layer_params}')
-
+    # print(f'[DEBUG] final_layer_params parameters: {final_layer_params}')
     model = create_model(models_dict, **model_definition_params)
-
-    print(f'[DEBUG] Created model: {model}')
-
+    # print(f'[DEBUG] Created model: {model}')
     model = replace_final_layer(model, **final_layer_params)
     model = model.to(device)
-    print(model)
     
     return model
 
 
 
-def initialize_training(model, initializer_configs):
+# def initialize_training(model, initializer_configs):
 
-    loss_fn, optimizer, scheduler, metric = initializer_configs.items()
+#     loss_fn, optimizer, scheduler, metric = initializer_configs.items()
 
+#     # Convert to callable and pass parameters
+
+#     initializers = {
+#         'loss_fn': loss_fn, 
+#         'optimizer': optimizer, 
+#         'scheduler': scheduler, 
+#         'metric': metric
+#         }
+#     print(f"Initializers dictionary: {initializers}")
+
+#     return initializers
+
+
+def initialize_training(model, device):
     initializers = {
-        'loss_fn': loss_fn, 
-        'optimizer': optimizer, 
-        'scheduler': scheduler, 
-        'metric': metric
+        "loss_fn": MSELoss(),
+        "optimizer": Adam(model.parameters(), amsgrad=True),
+        "metric": R2Score(device=device)
         }
+    initializers["scheduler"] = lr_scheduler.StepLR(
+        initializers['optimizer'], 
+        step_size=7, 
+        gamma=0.1
+        )
     
-    print(f"Initializers dictionary: {initializers}")
+    print(f"Initializers dictionary: {initializers.items()}")
 
     return initializers
-
 
 
 def train_model(model,
                 device,
                 dataloaders,
                 dataset_sizes,
-                loss_fn,
-                optimizer,
-                scheduler,
-                metric,
+                initializers: dict,
                 num_epochs=2):
      
+    loss_fn = initializers['loss_fn']
+    optimizer = initializers['optimizer']
+    metric = initializers['metric']
+    scheduler = initializers['scheduler']
     
     since = time.time()
 

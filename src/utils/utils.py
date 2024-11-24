@@ -69,3 +69,8 @@ def string_to_callable(callable_string):
     module = importlib.import_module(module_name)
     func = getattr(module, function_name)
     return func
+
+
+
+def instantiate_class(class_name, parameters):
+    pass

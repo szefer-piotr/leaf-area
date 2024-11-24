@@ -10,9 +10,11 @@ from .nodes import (
     split_data,
     create_transformations,
     create_datasets,
+    create_dataloaders,
     build_model_dictionary,
     instantiate_model,
-    initialize_training
+    initialize_training,
+    train_model
 )
 
 
@@ -47,6 +49,12 @@ def create_pipeline(**kwargs) -> Pipeline:
             func=create_datasets
         ),
         node(
+            name='create_dataloaders',
+            inputs=['image_datasets', 'params:batch_size'],
+            outputs='image_dataloaders',
+            func=create_dataloaders
+        ),
+        node(
             name='build_model_dictionary_node',
             inputs='model_dict',
             outputs='callable_model_dict',
@@ -63,8 +71,19 @@ def create_pipeline(**kwargs) -> Pipeline:
         ),
         node(
             name='initialize_training_node',
-            inputs=['model', "params:initializer_configs"],
+            inputs=['model', "device"],
             outputs="initializers",
             func=initialize_training,
-        )
+        ),
+        node(
+            name='model_training_node',
+            inputs=['model', 
+                    'device',
+                    'image_dataloaders',
+                    'dataset_sizes',
+                    'initializers',
+                    'params:num_epochs'],
+            outputs=[],
+            func=train_model,
+        ),
     ])
