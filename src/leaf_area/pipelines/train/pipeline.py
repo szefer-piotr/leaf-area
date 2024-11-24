@@ -10,7 +10,9 @@ from .nodes import (
     split_data,
     create_transformations,
     create_datasets,
-    instantiate_model
+    build_model_dictionary,
+    instantiate_model,
+    initialize_training
 )
 
 
@@ -45,12 +47,24 @@ def create_pipeline(**kwargs) -> Pipeline:
             func=create_datasets
         ),
         node(
+            name='build_model_dictionary_node',
+            inputs='model_dict',
+            outputs='callable_model_dict',
+            func=build_model_dictionary,
+        ),
+        node(
             name='initialize_model_node',
-            inputs=['models_dict',
+            inputs=['callable_model_dict',
                     'params:model_definition_params',
                     'params:final_layer_params',
                     'params:device'],
             outputs='model',
             func=instantiate_model
         ),
+        node(
+            name='initialize_training_node',
+            inputs=['model', "params:initializer_configs"],
+            outputs="initializers",
+            func=initialize_training,
+        )
     ])

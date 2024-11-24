@@ -5,10 +5,21 @@ generated using Kedro 0.19.9
 import torch
 import pandas as pd
 import os
+import importlib
+import time
+
+from tempfile import TemporaryDirectory
+
 from sklearn.model_selection import train_test_split
 
 from torchvision import transforms
 from torch.utils.data import DataLoader
+
+from torchvision import models
+from torch import nn
+from torch.nn import MSELoss
+from torcheval.metrics import R2Score
+from torch.optim import Adam, lr_scheduler
 
 from model_builder.model_builder import (
     LeafFrameDataset,
@@ -16,11 +27,6 @@ from model_builder.model_builder import (
     replace_final_layer,
     create_model
 )
-
-from torchvision import models
-from torch import nn
-from torch.nn import MSELoss
-from torch.optim import Adam, lr_scheduler
 
 
 
@@ -179,6 +185,38 @@ def create_dataloaders(image_datasets,
 
 
 
+def build_model_dictionary(
+        model_dict: dict[str:str]
+        ) -> dict[str:callable]:
+    """
+    Convert a dictionary of {str:str} (where values are names of nn.Modeule models) 
+    to a dictionary of {str:nn.Module}.
+    Args:
+        model_dict (dict): Dictionary with keys as strings and values as qualified nn.Module names.
+
+    Returns:
+        dict: dictionary with the same kwy, but values converted to callables.
+    
+    Raises:
+        ImportError: If the module cannot be imported.
+        AttributeError: If the nn.Module cannot be found in the module.
+    """
+    callable_model_dict ={}
+    for key, mod in model_dict.items():
+        try:
+            module_name, function_name = mod.rsplit('.', 1)
+            module = importlib.import_module(module_name)
+            function = getattr(module, function_name)
+            callable_model_dict[key] = function
+        except (ImportError, AttributeError) as e:
+            raise ValueError(f'Error converting "{mod}" to a callable: {e}')
+        
+    print(f'[DEBUG] Callable model dictionary: {callable_model_dict}')
+
+    return callable_model_dict
+
+
+
 def instantiate_model(models_dict: dict,
                       model_definition_params: dict,
                       final_layer_params: dict,
@@ -202,9 +240,13 @@ def instantiate_model(models_dict: dict,
     Returns:
         nn.Module:
     """
-    # model = models.resnet18(weights=weights)
+    
+    print(f'[DEBUG] final_layer_params parameters: {final_layer_params}')
+
     model = create_model(models_dict, **model_definition_params)
-    # Newly added layers have grad = True
+
+    print(f'[DEBUG] Created model: {model}')
+
     model = replace_final_layer(model, **final_layer_params)
     model = model.to(device)
     print(model)
@@ -213,84 +255,92 @@ def instantiate_model(models_dict: dict,
 
 
 
-# def train_model():
-#     from torcheval.metrics import R2Score
-# loss_fn = MSELoss()
-# optimizer = Adam(model.parameters(), amsgrad=True)
-# lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
-# metric = R2Score(device=device)
+def initialize_training(model, initializer_configs):
 
+    loss_fn, optimizer, scheduler, metric = initializer_configs.items()
 
-
-# import time
-# from tempfile import TemporaryDirectory
-# import os
-
-# def train_model(
-#     model,
-#     loss_fn,
-#     optimizer,
-#     scheduler,
-#     num_epochs=2
-# ):
-#     since = time.time()
-
-#     with TemporaryDirectory() as tempdir:
-#         best_model_params_path = os.path.join(tempdir, 'best_model_params.pt')
-#         torch.save(model.state_dict(), best_model_params_path)
-#         best_r2 = 0.0
-        
-#         for epoch in range(num_epochs):
-#             print(f'Epoch {epoch}/{num_epochs - 1}')
-#             print('-' * 10)
-
-#             for phase in ['train', 'val']:
-#                 if phase == 'train':
-#                     model.train()
-#                 else:
-#                     model.eval()
-
-#                 running_loss = 0.0
-#                 running_r2 = 0.0
-
-#                 for inputs, targets in dataloaders[phase]:
-#                     inputs = inputs.to(device)
-#                     targets = targets.to(device)
-
-#                     optimizer.zero_grad()
-
-#                     with torch.set_grad_enabled(phase == 'train'):
-#                         outputs = model(inputs)[:, 0]
-#                         loss = loss_fn(outputs, targets)
-#                         r2 = metric.update(outputs, targets).compute()
-
-#                         if phase == 'train':
-#                             loss.backward()
-#                             optimizer.step()
-
-#                     running_loss += loss.item() * inputs.size(0)
-#                     running_r2 += r2 * inputs.size(0)
-
-#                 if phase == 'train':
-#                     scheduler.step()
-
-#                 epoch_loss = running_loss / dataset_sizes[phase]
-#                 epoch_r2 = running_r2 / dataset_sizes[phase]
-
-#                 print(f'{phase} Loss (MSE): {epoch_loss:.4f}, R2: {epoch_r2:.4f}')
-
-#                 if phase == 'val' and epoch_r2 > best_r2:
-#                     best_r2 = epoch_r2
-#                     torch.save(model.stat_dict(), best_model_params_path)
-#             print()
-
-#         time_elapsed = time.time() - since
-#         print(f'Training complete in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s')
-        
-#         model.load_state_dict(torch.load(best_model_params_path, weights_only=True))
+    initializers = {
+        'loss_fn': loss_fn, 
+        'optimizer': optimizer, 
+        'scheduler': scheduler, 
+        'metric': metric
+        }
     
-#     return model
+    print(f"Initializers dictionary: {initializers}")
+
+    return initializers
 
 
-# def validate_model():
-#     pass
+
+def train_model(model,
+                device,
+                dataloaders,
+                dataset_sizes,
+                loss_fn,
+                optimizer,
+                scheduler,
+                metric,
+                num_epochs=2):
+     
+    
+    since = time.time()
+
+    with TemporaryDirectory() as tempdir:
+        best_model_params_path = os.path.join(tempdir, 'best_model_params.pt')
+        torch.save(model.state_dict(), best_model_params_path)
+        best_r2 = 0.0
+        
+        for epoch in range(num_epochs):
+            print(f'Epoch {epoch}/{num_epochs - 1}')
+            print('-' * 10)
+
+            for phase in ['train', 'val']:
+                if phase == 'train':
+                    model.train()
+                else:
+                    model.eval()
+
+                running_loss = 0.0
+                running_r2 = 0.0
+
+                for inputs, targets in dataloaders[phase]:
+                    inputs = inputs.to(device)
+                    targets = targets.to(device)
+
+                    optimizer.zero_grad()
+
+                    with torch.set_grad_enabled(phase == 'train'):
+                        outputs = model(inputs)[:, 0]
+                        loss = loss_fn(outputs, targets)
+                        r2 = metric.update(outputs, targets).compute()
+
+                        if phase == 'train':
+                            loss.backward()
+                            optimizer.step()
+
+                    running_loss += loss.item() * inputs.size(0)
+                    running_r2 += r2 * inputs.size(0)
+
+                if phase == 'train':
+                    scheduler.step()
+
+                epoch_loss = running_loss / dataset_sizes[phase]
+                epoch_r2 = running_r2 / dataset_sizes[phase]
+
+                print(f'{phase} Loss (MSE): {epoch_loss:.4f}, R2: {epoch_r2:.4f}')
+
+                if phase == 'val' and epoch_r2 > best_r2:
+                    best_r2 = epoch_r2
+                    torch.save(model.stat_dict(), best_model_params_path)
+            print()
+
+        time_elapsed = time.time() - since
+        print(f'Training complete in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s')
+        
+        model.load_state_dict(torch.load(best_model_params_path, weights_only=True))
+    
+    return model
+
+
+def validate_model():
+    pass

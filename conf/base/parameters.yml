@@ -1,19 +1,24 @@
 tabular_data_path: './data/05_model_input'
 
-
-
 target_transformations: None
 device: 'cuda'
 
 model_definition_params:
-  model_name: 'resnet18'
+  model_name: 'resnet50'
   weights: "DEFAULT"
   fine_tune: True
 
 final_layer_params:
   num_layers: 4
   nodes_per_layer: [128, 64, 32, 16, 1]
-  activation: nn.ReLU
+  activation: 'torch.nn.ReLU'
   final_activation: None
-  
 
+initializer_configs: 
+  loss_fn: 'MSELoss'
+  optimizer: 'Adam'
+  #   amsgrad: True
+  scheduler: 'lr_scheduler.StepLR'
+  #   step_size: 7
+  #   gamma: 0.1
+  metric: 'R2Score'

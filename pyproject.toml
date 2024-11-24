@@ -14,12 +14,17 @@ torch = {version = "^2.5.1+cu118", source = "pytorch-gpu"}
 torchvision = {version = "^0.20.1+cu118", source = "pytorch-gpu"}
 scikit-learn = "^1.5.2"
 pyyaml = "^6.0.2"
+torcheval = "^0.0.7"
 
 
 [[tool.poetry.source]]
 name = "pytorch-gpu"
 url = "https://download.pytorch.org/whl/cu118"
 priority = "explicit"
+
+
+[tool.poetry.group.dev.dependencies]
+ipykernel = "^6.29.5"
 
 [build-system]
 requires = ["poetry-core"]

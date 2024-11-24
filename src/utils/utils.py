@@ -1,4 +1,5 @@
 import pandas as pd
+import importlib
 
 def calculate_total_area(file: pd.DataFrame) -> pd.DataFrame:
     """
@@ -52,3 +53,19 @@ def calculate_total_area(file: pd.DataFrame) -> pd.DataFrame:
 #         print(e)
 #         return False
 #     return True
+
+def string_to_callable(callable_string):
+    """
+    Convert a string to a callable. This function helps to convert Kedro's
+    parameters into callables that can be passed to model building functions
+    in pipeline.
+    """
+    if callable_string == 'None':
+        return None
+    module_name, function_name = callable_string.rsplit('.', 1)
+
+    print(f'[INFO] Module called {module_name} with a function name: {function_name}')
+
+    module = importlib.import_module(module_name)
+    func = getattr(module, function_name)
+    return func

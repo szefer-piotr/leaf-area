@@ -1,8 +1,12 @@
-from torch.utils.data import Dataset
-from PIL import Image
 import torch
 import torch.nn as nn
 import numpy as np
+
+from torch.utils.data import Dataset
+from PIL import Image
+
+from utils.utils import string_to_callable
+
 
 class LeafFrameDataset(Dataset):
     def __init__(self, 
@@ -77,38 +81,6 @@ def create_sequential(num_layers,
 
 
 
-def replace_final_layer(
-        model, 
-        num_layers=4, 
-        nodes_per_layer=[64,128,64,32,1],
-        activation=nn.ReLU,
-        final_activation=None,
-    ):
-    """
-    Replace the final layer of a PyTorch model with a new layer.
-
-    Args:
-        model (nn.Module): A PyTorch model instance.
-        new_layer (nn.Module): The new layer to replace the final layer with.
-    
-    Returns:
-        nn.Module: The model with the final layer replaced.
-    """
-    children = list(model.named_children())
-    last_name, last_module = children[-1]
-    
-    new_layer = create_sequential(
-        num_layers, 
-        nodes_per_layer,
-        activation,
-        final_activation)
-    
-    setattr(model, last_name, replace_final_layer(last_module, new_layer))
-    
-    return model
-
-
-
 def create_model(models_dict, model_name, weights, fine_tune):
     """
     Create a model from the model dictionary.
@@ -124,8 +96,8 @@ def create_model(models_dict, model_name, weights, fine_tune):
         model (nn.Module): model
     """
     print(f'[DEBUG] {models_dict}')
-    model_callable = eval(models_dict[model_name])
-    model = model_callable(weights=weights)
+
+    model = models_dict[model_name](weights=weights)
     if fine_tune:
         for param in model.parameters():
             param.requires_grad = False
@@ -134,9 +106,46 @@ def create_model(models_dict, model_name, weights, fine_tune):
 
 
 
-def build_model_dictionary(models_yaml):
+def replace_final_layer(
+        model, 
+        num_layers=4, 
+        nodes_per_layer=[64,128,64,32,1],
+        activation='nn.ReLU',
+        final_activation='None',
+    ):
     """
-    Builds a callable for models in the model yml file.
+    Replace the final layer of a PyTorch model with a new layer.
+
+    Args:
+        model (nn.Module): A PyTorch model instance.
+        new_layer (nn.Module): The new layer to replace the final layer with.
+    
+    Returns:
+        nn.Module: The model with the final layer replaced.
     """
     
-    return model_dict
+    activation = eval(activation)
+    final_activation = eval(final_activation)
+
+    print(f"[DEBUG] Activation {activation} and final activation {final_activation}")
+    
+    children = list(model.named_children())
+
+    print(f"[DEBUG] Children: {len(children)} of class {type(children)}")
+
+    last_name, last_module = children[-1]
+    
+    new_layer = create_sequential(
+        num_layers, 
+        nodes_per_layer,
+        activation,
+        final_activation)
+    
+    print(f"[DEBUG] Last module {last_module} and new_layer {new_layer}")
+
+    setattr(model, last_name, new_layer)
+    
+    return model
+
+
+
