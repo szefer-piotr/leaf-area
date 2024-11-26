@@ -83,7 +83,7 @@ def create_pipeline(**kwargs) -> Pipeline:
                     'dataset_sizes',
                     'initializers',
                     'params:num_epochs'],
-            outputs=[],
+            outputs="trained_model",
             func=train_model,
         ),
     ])

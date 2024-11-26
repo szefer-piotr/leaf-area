@@ -59,8 +59,7 @@ def create_sequential(num_layers,
 
     Args:
         num_layers (int): Number of layers in the Sequential module.
-        nodes_per_layer (list[int]): List of integers specifying the number of nodes in each layer.
-                                     Must have `num_layers + 1` elements (input size + output sizes).
+        nodes_per_layer (list[int]): List of integers specifying the number of output nodes in each layer.
         activation (nn.Module): The activation function to use between layers. Default is nn.ReLU.
         final_activation (nn.Module): Optional final activation function after the last layer.
 
@@ -107,11 +106,11 @@ def create_model(models_dict, model_name, weights, fine_tune):
 
 def replace_final_layer(
         model, 
-        num_layers=4, 
-        nodes_per_layer=[64,128,64,32,1],
-        activation='nn.ReLU',
-        final_activation='None',
-    ):
+        num_layers: int, 
+        nodes_per_layer: list,
+        activation:str='nn.ReLU',
+        final_activation:str='None',
+    ) -> nn.Module:
     """
     Replace the final layer of a PyTorch model with a new layer.
 
@@ -129,9 +128,10 @@ def replace_final_layer(
     children = list(model.named_children())
     # print(f"[DEBUG] Children: {len(children)} of class {type(children)}")
     last_name, last_module = children[-1]
+    new_layer_in = last_module.in_features
     new_layer = create_sequential(
         num_layers, 
-        nodes_per_layer,
+        [new_layer_in]+nodes_per_layer,
         activation,
         final_activation)
     # print(f"[DEBUG] Last module {last_module} and new_layer {new_layer}")

@@ -250,7 +250,7 @@ def instantiate_model(models_dict: dict,
     # print(f'[DEBUG] Created model: {model}')
     model = replace_final_layer(model, **final_layer_params)
     model = model.to(device)
-    
+    print(f'[DEBUG] Created model with replaced layer: {model}')
     return model
 
 
@@ -349,7 +349,7 @@ def train_model(model,
 
                 if phase == 'val' and epoch_r2 > best_r2:
                     best_r2 = epoch_r2
-                    torch.save(model.stat_dict(), best_model_params_path)
+                    torch.save(model.state_dict(), best_model_params_path)
             print()
 
         time_elapsed = time.time() - since
@@ -360,5 +360,11 @@ def train_model(model,
     return model
 
 
-def validate_model():
+
+def train_model_simple():
+    pass
+
+
+
+def test_model():
     pass

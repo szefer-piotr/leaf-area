@@ -1,9 +1,9 @@
 tabular_data_path: './data/05_model_input'
 
-target_transformations: None
+target_transformations: np.log1p
 device: 'cuda'
 batch_size: 8
-num_epochs: 2
+num_epochs: 1
 
 model_definition_params:
   model_name: 'resnet50'
@@ -12,7 +12,7 @@ model_definition_params:
 
 final_layer_params:
   num_layers: 4
-  nodes_per_layer: [128, 64, 32, 16, 1]
+  nodes_per_layer: [128, 64, 32, 1]
   activation: 'torch.nn.ReLU'
   final_activation: None
 
