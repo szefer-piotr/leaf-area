@@ -16,6 +16,11 @@ scikit-learn = "^1.5.2"
 pyyaml = "^6.0.2"
 torcheval = "^0.0.7"
 mlflow = ">=2.11.3,<2.12.0"
+transformers = "^4.47.0"
+roboflow = "^1.1.49"
+timm = "^1.0.12"
+pycocotools = "^2.0.8"
+pytorch-lightning = "^2.4.0"
 
 
 [[tool.poetry.source]]

@@ -4,6 +4,7 @@
 # ignore all local configuration
 conf/local/**
 !conf/local/.gitkeep
+notebooks/leaf-area-3/
 
 # ignore potentially sensitive credentials files
 conf/**/*credentials*
