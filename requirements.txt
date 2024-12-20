@@ -6,3 +6,4 @@ kedro-viz>=6.7.0
 kedro[jupyter]
 notebook
 scikit-learn~=1.5.1
+numpy 

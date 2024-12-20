@@ -1,4 +1,3 @@
-
 # Leaf Damage Estimation from Leaf Photographs
 
 [![Powered by Kedro](https://img.shields.io/badge/powered_by-kedro-ffc900?logo=kedro)](https://kedro.org)
@@ -7,6 +6,11 @@ When studying herbovory a leaf frame is often used. But to process each and indi
 
 This project aims to build a regression deep learning model to quickly and accurately process leaf frame photos in batches, to speed up the processing pipeline of scientific reasearch.
 
+## Overview
+
+### Project flow
+
+1. Facebook's DETR-resnet-50 model is utilised to automatically detect leaves in the raw leaf frame photo. The `train_model_pipeline` does that, with dataset provided in the data folder
 
 ### Data Preparation
 
@@ -22,11 +26,37 @@ Git to follow the code
 DagsHub to version the data (?)
 MLFLOW to track experiments and models.
 
-## Overview
+
+### Data
+
+More than 10000 images with leaf area calculated are 
 
 This is your new Kedro project with Kedro-Viz setup, which was generated using `kedro 0.19.9`.
 
 Take a look at the [Kedro documentation](https://docs.kedro.org) to get started.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## Rules and guidelines
 
